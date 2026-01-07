@@ -8,17 +8,15 @@ echo "-----> Install aria2c"
 BUILD_DIR=$1
 VENDOR_DIR="vendor"
 FILE="aria2-1.37.0-linux-gnu-64bit-build1"
-FILE_PATH="aria2-1.37.0-linux-gnu-64bit-build1.tar.bz2"
+FILE_PATH="$BUILD_DIR/$FILE.tar.bz2"  # File is in the BUILD_DIR (repo root)
 
 echo "FILE_PATH = " $FILE_PATH | indent
 
-cd $BUILD_DIR
-mkdir -p $VENDOR_DIR
-cd $VENDOR_DIR
-mkdir -p aria2c
-cd aria2c
+# Create the vendor directory structure
+mkdir -p $BUILD_DIR/$VENDOR_DIR/aria2c
+cd $BUILD_DIR/$VENDOR_DIR/aria2c
 
-# Copy the file from local path instead of downloading
+# Copy the file from repo root to current directory
 cp $FILE_PATH .
 
 tar jxf $FILE.tar.bz2
