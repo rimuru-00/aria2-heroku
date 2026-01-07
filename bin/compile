@@ -7,67 +7,28 @@ indent() {
 echo "-----> Install aria2c"
 BUILD_DIR=$1
 BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd)
-
-echo "====== DEBUGGING: Exploring directory structure ======" | indent
-echo "BUILD_DIR = $BUILD_DIR" | indent
-echo "BUILDPACK_DIR = $BUILDPACK_DIR" | indent
-echo "Current directory: $(pwd)" | indent
-echo "" | indent
-
-echo "Contents of BUILD_DIR:" | indent
-ls -lah $BUILD_DIR | indent
-echo "" | indent
-
-echo "Contents of BUILDPACK_DIR:" | indent
-ls -lah $BUILDPACK_DIR | indent
-echo "" | indent
-
-echo "Searching for aria2 tar.bz2 in BUILD_DIR:" | indent
-find $BUILD_DIR -maxdepth 2 -name "*.tar.bz2" -type f | indent
-echo "" | indent
-
-echo "Searching for aria2 tar.bz2 in BUILDPACK_DIR:" | indent
-find $BUILDPACK_DIR -maxdepth 2 -name "*.tar.bz2" -type f | indent
-echo "====== END DEBUGGING ======" | indent
-echo "" | indent
-
 VENDOR_DIR="vendor"
 FILE="aria2-1.37.0-linux-gnu-64bit-build1"
 
-# Try to find the aria2 file in BUILD_DIR first, then BUILDPACK_DIR
-ARIA2_FILE=$(find $BUILD_DIR -maxdepth 2 -name "aria2*.tar.bz2" -type f | head -n 1)
+# Locate the aria2 file in buildpack
+ARIA2_FILE="$BUILDPACK_DIR/$FILE.tar.bz2"
 
-if [ -z "$ARIA2_FILE" ]; then
-  echo "Not found in BUILD_DIR, checking BUILDPACK_DIR..." | indent
-  ARIA2_FILE=$(find $BUILDPACK_DIR -maxdepth 2 -name "aria2*.tar.bz2" -type f | head -n 1)
-fi
+echo "FILE_PATH = " $ARIA2_FILE | indent
 
-if [ -z "$ARIA2_FILE" ]; then
-  echo "ERROR: aria2 tar.bz2 file not found!" | indent
-  echo "Searched in:" | indent
-  echo "  - $BUILD_DIR" | indent
-  echo "  - $BUILDPACK_DIR" | indent
-  exit 1
-fi
+cd $BUILD_DIR
+mkdir -p $VENDOR_DIR
+cd $VENDOR_DIR
+mkdir -p aria2c
+cd aria2c
 
-echo "Found aria2 file at: $ARIA2_FILE" | indent
+# Copy the file here instead of wget
+cp $ARIA2_FILE $FILE.tar.bz2
 
-# Create the vendor directory structure
-mkdir -p $BUILD_DIR/$VENDOR_DIR/aria2c
-cd $BUILD_DIR/$VENDOR_DIR/aria2c
-
-# Copy the file to current directory
-cp $ARIA2_FILE .
-ARIA2_FILENAME=$(basename $ARIA2_FILE)
-
-echo "Extracting $ARIA2_FILENAME" | indent
-tar jxf $ARIA2_FILENAME
+tar jxf $FILE.tar.bz2
 mv $FILE/* .
-rm -rf $FILE $ARIA2_FILENAME
+rm -rf $FILE $FILE.tar.bz2
 
 echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/aria2c.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$PATH:${HOME}/vendor/aria2c"' >> $PROFILE_PATH
-
-echo "Installation complete!" | indent
