@@ -6,24 +6,52 @@ indent() {
 
 echo "-----> Install aria2c"
 BUILD_DIR=$1
+
+echo "====== DEBUGGING: Exploring directory structure ======" | indent
+echo "BUILD_DIR = $BUILD_DIR" | indent
+echo "" | indent
+echo "Current directory: $(pwd)" | indent
+echo "" | indent
+echo "Contents of BUILD_DIR ($BUILD_DIR):" | indent
+ls -la $BUILD_DIR | indent
+echo "" | indent
+echo "Looking for aria2 file:" | indent
+find $BUILD_DIR -name "aria2*.tar.bz2" -type f | indent
+echo "" | indent
+echo "Full directory tree:" | indent
+find $BUILD_DIR -type f | indent
+echo "====== END DEBUGGING ======" | indent
+echo "" | indent
+
 VENDOR_DIR="vendor"
 FILE="aria2-1.37.0-linux-gnu-64bit-build1"
-FILE_PATH="$BUILD_DIR/$FILE.tar.bz2"  # File is in the BUILD_DIR (repo root)
 
-echo "FILE_PATH = " $FILE_PATH | indent
+# Try to find the aria2 file
+ARIA2_FILE=$(find $BUILD_DIR -name "aria2*.tar.bz2" -type f | head -n 1)
+
+if [ -z "$ARIA2_FILE" ]; then
+  echo "ERROR: aria2 tar.bz2 file not found!" | indent
+  exit 1
+fi
+
+echo "Found aria2 file at: $ARIA2_FILE" | indent
 
 # Create the vendor directory structure
 mkdir -p $BUILD_DIR/$VENDOR_DIR/aria2c
 cd $BUILD_DIR/$VENDOR_DIR/aria2c
 
-# Copy the file from repo root to current directory
-cp $FILE_PATH .
+# Copy the file from wherever it is to current directory
+cp $ARIA2_FILE .
+ARIA2_FILENAME=$(basename $ARIA2_FILE)
 
-tar jxf $FILE.tar.bz2
+echo "Extracting $ARIA2_FILENAME" | indent
+tar jxf $ARIA2_FILENAME
 mv $FILE/* .
-rm -rf $FILE $FILE.tar.bz2
+rm -rf $FILE $ARIA2_FILENAME
 
 echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/aria2c.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$PATH:${HOME}/vendor/aria2c"' >> $PROFILE_PATH
+
+echo "Installation complete!" | indent
