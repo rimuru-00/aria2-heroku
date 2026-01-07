@@ -6,44 +6,47 @@ indent() {
 
 echo "-----> Install aria2c"
 BUILD_DIR=$1
+BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 echo "====== DEBUGGING: Exploring directory structure ======" | indent
 echo "BUILD_DIR = $BUILD_DIR" | indent
-echo "" | indent
+echo "BUILDPACK_DIR = $BUILDPACK_DIR" | indent
 echo "Current directory: $(pwd)" | indent
 echo "" | indent
 
-# Check if aria2-heroku directory exists
-ARIA2_HEROKU_DIR="$BUILD_DIR/aria2-heroku"
-if [ -d "$ARIA2_HEROKU_DIR" ]; then
-  echo "Contents of aria2-heroku directory:" | indent
-  echo "" | indent
-  
-  # List directories in aria2-heroku
-  for dir in $(find $ARIA2_HEROKU_DIR -type d | sort); do
-    echo "Directory: $dir" | indent
-    echo "  Files:" | indent
-    find $dir -maxdepth 1 -type f -exec basename {} \; | sed 's/^/    /' | indent
-    echo "" | indent
-  done
-else
-  echo "aria2-heroku directory not found at $ARIA2_HEROKU_DIR" | indent
-fi
-
+echo "Contents of BUILD_DIR:" | indent
+ls -lah $BUILD_DIR | indent
 echo "" | indent
-echo "Looking for aria2 tar.bz2 file in BUILD_DIR:" | indent
-find $BUILD_DIR -maxdepth 1 -name "aria2*.tar.bz2" -type f | indent
+
+echo "Contents of BUILDPACK_DIR:" | indent
+ls -lah $BUILDPACK_DIR | indent
+echo "" | indent
+
+echo "Searching for aria2 tar.bz2 in BUILD_DIR:" | indent
+find $BUILD_DIR -maxdepth 2 -name "*.tar.bz2" -type f | indent
+echo "" | indent
+
+echo "Searching for aria2 tar.bz2 in BUILDPACK_DIR:" | indent
+find $BUILDPACK_DIR -maxdepth 2 -name "*.tar.bz2" -type f | indent
 echo "====== END DEBUGGING ======" | indent
 echo "" | indent
 
 VENDOR_DIR="vendor"
 FILE="aria2-1.37.0-linux-gnu-64bit-build1"
 
-# Look for the aria2 file in BUILD_DIR root
-ARIA2_FILE=$(find $BUILD_DIR -maxdepth 1 -name "aria2*.tar.bz2" -type f | head -n 1)
+# Try to find the aria2 file in BUILD_DIR first, then BUILDPACK_DIR
+ARIA2_FILE=$(find $BUILD_DIR -maxdepth 2 -name "aria2*.tar.bz2" -type f | head -n 1)
 
 if [ -z "$ARIA2_FILE" ]; then
-  echo "ERROR: aria2 tar.bz2 file not found in BUILD_DIR root!" | indent
+  echo "Not found in BUILD_DIR, checking BUILDPACK_DIR..." | indent
+  ARIA2_FILE=$(find $BUILDPACK_DIR -maxdepth 2 -name "aria2*.tar.bz2" -type f | head -n 1)
+fi
+
+if [ -z "$ARIA2_FILE" ]; then
+  echo "ERROR: aria2 tar.bz2 file not found!" | indent
+  echo "Searched in:" | indent
+  echo "  - $BUILD_DIR" | indent
+  echo "  - $BUILDPACK_DIR" | indent
   exit 1
 fi
 
