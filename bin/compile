@@ -8,16 +8,19 @@ echo "-----> Install aria2c"
 BUILD_DIR=$1
 VENDOR_DIR="vendor"
 FILE="aria2-1.37.0-linux-gnu-64bit-build1"
-DOWNLOAD_URL="https://github.com/q3aql/aria2-static-builds/releases/download/v1.37.0/$FILE.tar.bz2"
+FILE_PATH="aria2-1.37.0-linux-gnu-64bit-build1.tar.bz2"
 
-echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
+echo "FILE_PATH = " $FILE_PATH | indent
 
 cd $BUILD_DIR
 mkdir -p $VENDOR_DIR
 cd $VENDOR_DIR
 mkdir -p aria2c
 cd aria2c
-wget -q $DOWNLOAD_URL
+
+# Copy the file from local path instead of downloading
+cp $FILE_PATH .
+
 tar jxf $FILE.tar.bz2
 mv $FILE/* .
 rm -rf $FILE $FILE.tar.bz2
